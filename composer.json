@@ -1,0 +1,22 @@
+{
+    "name": "aramonc/annotationParser",
+    "description": "Parses strings for docBlock like portions and then extracts the annotations and descriptions.",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Adrian Cardenas",
+            "email": "arcardenas@gmail.com"
+        }
+    ],
+    "require": {
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Ils": "src/"
+        }
+    }
+}
