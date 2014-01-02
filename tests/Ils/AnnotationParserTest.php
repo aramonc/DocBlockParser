@@ -13,14 +13,21 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
         $this->parser = new AnnotationParser();
         $this->docBlock = <<<TST
 /**
-*
-* The description
-* Another description
-*
-* @category test
-* @tags test one two three
-*
-*/
+ * This is the description
+ *
+ * @tags test, another test, joy
+ * @category test
+ */
+
+This is the content of the test.
+
+#It contains some MarkDown#
+
+* list 1
+* list 2
+* list 3
+
+
 TST;
     }
 
@@ -57,7 +64,7 @@ TST;
 
         $annotationExpected = array(
             "category" => "test",
-            "tags" => "test one two three"
+            "tags" => "test, another test, joy"
         );
 
         $result = $this->parser->getAnnotations($this->docBlock);
@@ -74,7 +81,7 @@ TST;
         $this->assertEmpty($this->parser->getDescription(''), "An empty string should return an empty string");
         $this->assertEmpty($this->parser->getDescription('/***/'), "An empty docBlock should return an empty string");
 
-        $descriptionExpected = "The description Another description";
+        $descriptionExpected = "This is the description";
 
         $result = $this->parser->getDescription($this->docBlock);
 
@@ -82,5 +89,38 @@ TST;
 
         $descriptionExpected = null;
         $result = null;
+    }
+
+    public function testExtractAnnotationsAndContent()
+    {
+        $this->assertEquals(array('meta' => '', 'content' => ''), $this->parser->extractDocBlock(''), "An empty string should return an empty array");
+        $this->assertEquals(array('meta' => '/***/', 'content' => ''), $this->parser->extractDocBlock('/***/'), "An empty docBlock should return an empty array");
+
+        $annotationExpected = array(
+            "meta" => "/**\n * This is the description\n *\n * @tags test, another test, joy\n * @category test\n */",
+            "content" => "This is the content of the test.\n\n#It contains some MarkDown#\n\n* list 1\n* list 2\n* list 3"
+        );
+
+        $result = $this->parser->extractDocBlock($this->docBlock);
+
+        $this->assertArrayHasKey("meta", $result, "Using the example docBlock, there should be a meta array key");
+        $this->assertEquals($annotationExpected, $result, "Using the example docBlock, there should be two keys with values");
+
+        $annotationExpected = null;
+        $result = null;
+    }
+
+    public function testParseFunctionIntegration()
+    {
+        $expected = array(
+            'meta' => array(
+                'tags' => "test, another test, joy",
+                'category' => "test",
+                'description' => "This is the description",
+            ),
+            'content' => "This is the content of the test.\n\n#It contains some MarkDown#\n\n* list 1\n* list 2\n* list 3",
+        );
+
+        $this->assertEquals($expected, $this->parser->parse($this->docBlock), "Using the example docBlock, the result should equal the expected array");
     }
 } 

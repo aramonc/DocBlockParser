@@ -4,9 +4,9 @@ namespace Ils;
 
 class AnnotationParser
 {
-    const DOCBLOCK_PATTERN = '%^\/\*\*.*\*\/$%s';
-    const ANNOTATION_PATTERN = '/^(?:\*\s*\@)(?P<tag>[a-zA-Z]+)\s(?P<value>.+)$/m';
-    const DESCRIPTION_PATTERN = '/^(?:\*\s*)(?P<description>[^@\/\s\*].+)$/m';
+    const DOCBLOCK_PATTERN = '%\/\*\*.*\*\/%s';
+    const ANNOTATION_PATTERN = '/(?:\*\s*\@)(?P<tag>[a-zA-Z]+)\s(?P<value>.+)\n/';
+    const DESCRIPTION_PATTERN = '/(?:\/\*\*\n\*\s*)(?P<description>[^@\/\s\*].+)\n/s';
 
     /**
      * Verify if the string has a docBlock in it.
@@ -61,5 +61,51 @@ class AnnotationParser
         preg_match_all(self::DESCRIPTION_PATTERN, $text, $matches);
 
         return implode(" ", $matches['description']);
+    }
+
+    /**
+     * Separate the docBlock from the content
+     * @param string $text
+     * @return array
+     */
+    public function extractDocBlock($text)
+    {
+        $split = array(
+            'meta' => '',
+            'content' => '',
+        );
+
+        if(!is_string($text) || !$this->hasDocBlock($text)) {
+            $split['content'] = $text;
+        }
+
+        $split['meta'] = substr($text, 0, strpos($text, '*/') + 2);
+        $split['content'] = trim(substr($text, strpos($text, '*/') + 2));
+
+        return $split;
+    }
+
+    /**
+     * Parses a string for a single
+     * @param string $text
+     * @return array
+     */
+    public function parse($text)
+    {
+        $data = array(
+            'meta' => array(),
+            'content' => ''
+        );
+
+        if(!is_string($text) || !$this->hasDocBlock($text)) {
+            $data['content'] = $text;
+        }
+
+        $split = $this->extractDocBlock($text);
+        $data['meta'] = $this->getAnnotations($split['meta']);
+        $data['meta']['description'] = $this->getDescription($split['meta']);
+        $data['content'] = $split['content'];
+
+        return $data;
     }
 } 
