@@ -1,7 +1,8 @@
 <?php
 
-namespace Ils;
+namespace IlsTest;
 
+use Ils\AnnotationParser;
 
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 {
