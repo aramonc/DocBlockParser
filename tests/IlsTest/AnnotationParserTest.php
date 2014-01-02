@@ -6,9 +6,16 @@ use Ils\AnnotationParser;
 
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var AnnotationParser
+     */
     public $parser;
+
+    /**
+     * @var $this->docBlock
+     */
     public $docBlock;
-    
+
     public function setUp()
     {
         $this->parser = new AnnotationParser();
@@ -30,58 +37,100 @@ TST;
         $this->parser = null;
         $this->docBlock = null;
     }
-    
-    public function testStringHasDocBlock()
+
+    /**
+     * @test
+     * @dataProvider getValidInputProvider
+     */
+    public function hasdocblockShouldReturnTrueForStringsWithValidDocblocks($string, $errorMessage)
     {
-
-        // Test for incorrect inputs
-        $this->assertFalse($this->parser->hasDocBlock(null), "Null inputs don't have docBlocks");
-
-        // Test for empty strings
-        $this->assertFalse($this->parser->hasDocBlock(''), "Empty strings don't have docBlocks");
-
-        // Test for non docBlock strings
-        $this->assertFalse($this->parser->hasDocBlock('Test'), "Strings without docBlocks have no docBlocks");
-
-        // Test an empty docBlock
-        $this->assertTrue($this->parser->hasDocBlock('/***/'), "A string with an empty docBlock has a docBlock");
-
-        // Test the sample docBlock
-        $this->assertTrue($this->parser->hasDocBlock($this->docBlock), "A string with full docBlock has a docBlock");
-
+        $this->assertTrue( $this->parser->hasDocBlock($string), $errorMessage );
     }
 
-    public function testRetrieveAnnotationsFromString()
+    /**
+     * @test
+     * @dataProvider getInvalidInputProvider
+     */
+    public function hasdocblockShouldReturnFalseForStringsWithInvalidDoclbocks($string, $errorMessage)
     {
-        $this->assertEquals(array(), $this->parser->getAnnotations(''), "An empty string should return an empty array");
-        $this->assertEquals(array(), $this->parser->getAnnotations('/***/'), "An empty docBlock should return an empty array");
+        $this->assertFalse( $this->parser->hasDocBlock($string), $errorMessage );
+    }
 
-        $annotationExpected = array(
+    /**
+     * @test
+     */
+    public function getdescriptionShouldReturnDescriptionAsString()
+    {
+        $expected = "The description Another description";
+
+        $result = $this->parser->getDescription($this->docBlock);
+
+        $this->assertEquals( $expected, $result, "Using the example docBlock, there should be a description string");
+    }
+
+    /**
+     * @test
+     */
+    public function getdescriptionShouldReturnEmptyStringWithInvalidInput()
+    {
+        $result = $this->parser->getDescription(array('foo' => 'bar'));
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * @test
+     */
+    public function getannotationsShouldReturnEmptyArrayWithInvalidInput()
+    {
+        $result = $this->parser->getAnnotations('');
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * @test
+     */
+    public function getannotationsShouldReturnEmptyArrayWithNoDocblocks()
+    {
+        $result = $this->parser->getAnnotations('just a string without docblocks');
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * @test
+     */
+    public function getannotationsShouldReturnArrayWithTagsAsKeys()
+    {
+        $expected = array(
             "category" => "test",
             "tags" => "test one two three"
         );
 
         $result = $this->parser->getAnnotations($this->docBlock);
-
-        $this->assertArrayHasKey("tags", $result, "Using the example docBlock, there should be a tags array key");
-        $this->assertEquals($annotationExpected, $result, "Using the example docBlock, there should be two keys with values");
-
-        $annotationExpected = null;
-        $result = null;
+        $this->assertEquals($expected, $result);
     }
 
-    public function testRetrieveDescriptionFromString()
+    public function getValidInputProvider()
     {
-        $this->assertEmpty($this->parser->getDescription(''), "An empty string should return an empty string");
-        $this->assertEmpty($this->parser->getDescription('/***/'), "An empty docBlock should return an empty string");
+        return array(
+            array('/***/', "A string with an empty docBlock"),
+            array('/** @foo bar **/', "A string with an inline docBlock"),
+            array("/**
+* @tags test one two three
+*/", "A string with full docBlock"),
+        );
+    }
 
-        $descriptionExpected = "The description Another description";
-
-        $result = $this->parser->getDescription($this->docBlock);
-
-        $this->assertEquals($descriptionExpected, $result, "Using the example docBlock, there should be a description string");
-
-        $descriptionExpected = null;
-        $result = null;
+    public function getInvalidInputProvider()
+    {
+        return array(
+            array(null, "Null inputs don't have docBlocks"),
+            array('', "Empty strings don't have docBlocks"),
+            array('Test', "Strings without docBlocks have no docBlocks"),
+            array('/* @covers foo */', "An invalid phpdoc."),
+            array('/***** @foo bar', "An invalid docBlock."),
+            array('/**
+*
+* @bar foo', "An invalid docBlock."),
+        );
     }
 } 
