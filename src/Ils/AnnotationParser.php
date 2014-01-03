@@ -16,7 +16,7 @@ class AnnotationParser
      */
     public function hasDocBlock($block)
     {
-        if(!is_string($block) || $block == '') {
+        if ( ! is_string($block) || $block == '') {
             return false;
         }
 
@@ -32,7 +32,7 @@ class AnnotationParser
     {
         $annotations = array();
 
-        if(!is_string($text) || !$this->hasDocBlock($text)) {
+        if ( ! $this->hasDocBlock($text) ) {
             return $annotations;
         }
 
@@ -54,7 +54,7 @@ class AnnotationParser
     {
         $description = '';
 
-        if(!is_string($text) || !$this->hasDocBlock($text)) {
+        if ( ! $this->hasDocBlock($text) ) {
             return $description;
         }
 
