@@ -188,10 +188,10 @@ DBK;
     public function parseShouldReturnAnArrayWithOnlyContentFromInvalidInput()
     {
         $expected = array(
-            'meta' => "",
+            'meta' => array(),
             'content' => "This is some content",
         );
-        $result = $this->parser->extractDocBlock("This is some content");
+        $result = $this->parser->parse("This is some content");
         $this->assertEquals($expected, $result);
     }
 
